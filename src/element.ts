@@ -13,12 +13,12 @@ function createElement(type:String, props:any, ...children:any): element {
     type,
     props: {
       ...props,
-      children: children.map(child => typeof child == "object" ? child : createTextElement(child)),
+      children: children.map((child:any) => typeof child == "object" ? child : createTextElement(child)),
     },
   }
 }
 
-function createTextElement(text):element {
+function createTextElement(text:any):element {
   return {
     type: "TEXT_ELEMENT",
     props: {
