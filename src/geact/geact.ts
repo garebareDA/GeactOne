@@ -1,7 +1,9 @@
-import createElement from './element';
+import { createElement } from './element';
+import { render } from './render'
 
 const Geact = {
-  createElement
+  createElement,
+  render
 }
 
 export default Geact;

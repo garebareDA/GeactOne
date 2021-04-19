@@ -1,10 +1,9 @@
 //とりあえずany 書き換えれそうだったらそうする
-
 type element = {
   type:String,
   props:{
-    nodeValue:any,
-    children:Array<any>,
+    nodeValue:string,
+    children:Array<element>,
   }
 }
 
@@ -13,12 +12,12 @@ function createElement(type:String, props:any, ...children:any): element {
     type,
     props: {
       ...props,
-      children: children.map((child:any) => typeof child == "object" ? child : createTextElement(child)),
+      children: children.map((child:element) => typeof child == "object" ? child : createTextElement(child)),
     },
   }
 }
 
-function createTextElement(text:any):element {
+function createTextElement(text:string):element {
   return {
     type: "TEXT_ELEMENT",
     props: {
@@ -28,4 +27,7 @@ function createTextElement(text:any):element {
   }
 }
 
-export default createElement
+export {
+  createElement,
+  element,
+}
