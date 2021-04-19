@@ -36,7 +36,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \*****************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"render\": () => (/* binding */ render)\n/* harmony export */ });\nfunction render(elements, container) {\n  const dom = elements.type == \"TEXT_ELEMENT\" ? document.createTextNode(\"\") : document.createElement(elements.type.toString());\n  elements.props.children.forEach(chiled => {\n    render(chiled, dom);\n  });\n  container.appendChild(dom);\n\n  const isPropaty = key => key !== \"children\";\n\n  Object.keys(elements.props).filter(isPropaty).forEach(name => {\n    console.log(name);\n  });\n}\n\n\n\n//# sourceURL=webpack://geactone/./src/geact/render.ts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"render\": () => (/* binding */ render)\n/* harmony export */ });\nfunction render(elements, container) {\n  const dom = elements.type == \"TEXT_ELEMENT\" ? document.createTextNode(\"\") : document.createElement(elements.type.toString());\n  elements.props.children.forEach(chiled => {\n    render(chiled, dom);\n  });\n  container.appendChild(dom);\n\n  const isPropaty = key => key !== \"children\";\n\n  Object.keys(elements.props).filter(isPropaty).forEach(name => {\n    dom[name] = elements.props[name];\n  });\n}\n\n\n\n//# sourceURL=webpack://geactone/./src/geact/render.ts?");
 
 /***/ }),
 
