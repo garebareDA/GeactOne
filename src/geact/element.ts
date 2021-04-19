@@ -1,36 +1,33 @@
-//とりあえずany 書き換えれそうだったらそうする
-type element = {
-  type:String,
-  props:{
-    nodeValue:string,
-    children:Array<any>,
-  }
-}
+import { Fiber } from './render';
 
-function createElement(type:String, props:any, ...children:any): element {
+function createElement(type: string, props: any, ...children: any): Fiber {
   return {
+    dom: null,
+    pearent: null,
+    child: null,
+    sibling: null,
     type,
     props: {
       ...props,
-      children: children.map((child:element) => typeof child == "object" ? child : createTextElement(child)),
+      children: children.map((child: Fiber) => typeof child == "object" ? child : createTextElement(child)),
     },
   }
 }
 
-function createTextElement(text:string):element {
+function createTextElement(text: string): Fiber {
   return {
+    dom: null,
+    pearent: null,
+    child: null,
+    sibling: null,
     type: "TEXT_ELEMENT",
     props: {
       nodeValue: text,
-      children:[],
+      children: [],
     }
   }
 }
 
 export {
   createElement
-}
-
-export type {
-  element
 }
