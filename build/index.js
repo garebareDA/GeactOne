@@ -46,7 +46,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \**********************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _geact_geact__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./geact/geact */ \"./src/geact/geact.ts\");\n\nconst elements = _geact_geact__WEBPACK_IMPORTED_MODULE_0__.default.createElement(\"div\", {\n  id: \"foo\"\n}, _geact_geact__WEBPACK_IMPORTED_MODULE_0__.default.createElement(\"a\", null, \"bar\"), _geact_geact__WEBPACK_IMPORTED_MODULE_0__.default.createElement(\"b\", null));\nconsole.log(elements);\nconst container = document.getElementById(\"root\");\n\nif (container != null) {\n  _geact_geact__WEBPACK_IMPORTED_MODULE_0__.default.render(elements, container);\n} else {\n  console.error(\"root\" + \"is not found\");\n}\n\n//# sourceURL=webpack://geactone/./src/index.ts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _geact_geact__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./geact/geact */ \"./src/geact/geact.ts\");\n\nconst elements = _geact_geact__WEBPACK_IMPORTED_MODULE_0__.default.createElement(\"div\", {\n  id: \"foo\"\n}, _geact_geact__WEBPACK_IMPORTED_MODULE_0__.default.createElement(\"a\", null, \"bar\"), _geact_geact__WEBPACK_IMPORTED_MODULE_0__.default.createElement(\"b\", null));\nconst container = document.getElementById(\"root\");\n\nif (container != null) {\n  _geact_geact__WEBPACK_IMPORTED_MODULE_0__.default.render(elements, container);\n} else {\n  console.error(\"root\" + \"is not found\");\n}\n\n//# sourceURL=webpack://geactone/./src/index.ts?");
 
 /***/ })
 

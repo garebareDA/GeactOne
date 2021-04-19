@@ -11,9 +11,8 @@ function render(elements: element, container: Text | HTMLElement) {
 
   const isPropaty = (key:string) => key !== "children";
   Object.keys(elements.props).filter(isPropaty).forEach(name => {
-    dom[name] = elements.props[name]
+    (dom as any)[name] = (elements.props as any)[name];
   });
-
 }
 
 export {

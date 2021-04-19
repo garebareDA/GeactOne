@@ -3,7 +3,7 @@ type element = {
   type:String,
   props:{
     nodeValue:string,
-    children:Array<element>,
+    children:Array<any>,
   }
 }
 
@@ -28,6 +28,9 @@ function createTextElement(text:string):element {
 }
 
 export {
-  createElement,
-  element,
+  createElement
+}
+
+export type {
+  element
 }
