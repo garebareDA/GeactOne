@@ -1,5 +1,5 @@
 type Fiber = {
-  type: string,
+  type: string | any,
   dom: Text | HTMLElement | null,
   parent: Fiber | null,
   child: Fiber | null,
@@ -19,8 +19,9 @@ let wipRoot: Fiber | null = null;
 let currentRoot: Fiber | null = null;
 let deletions: Fiber[];
 
-const isPropaty = (key: string) => key !== "chiledren";
-const isNew = (prev: Props, next: Props) => (key: string) => prev[key] !== next[key];
+const isProperty = (key: string) => key !== "children" && !isEvent(key)
+const isEvent = (key: string) => key.startsWith("on")
+const isNew = (prev: any, next: any) => (key: any) => prev[key] as any !== next[key];
 const isGone = (prev: Props, next: Props) => (key: string) => !(key in next);
 
 requestAnimationFrame(workLoop);
@@ -66,7 +67,9 @@ function commitRoot() {
 
 function commitWork(fiber: Fiber | null) {
   if (!fiber) return;
-  const domParent = fiber.parent?.dom;
+  let domParentFiber: Fiber | null | undefined = fiber.parent;
+  while (!domParentFiber?.dom) { domParentFiber = domParentFiber?.parent }
+  const domParent = domParentFiber.dom
 
   if (fiber.effectTag === "PLACEMENT" && fiber.dom != null) {
     domParent?.appendChild(fiber.dom)
@@ -83,19 +86,46 @@ function commitWork(fiber: Fiber | null) {
 
 function updateDom(dom: Text | HTMLElement, prevProps: Props, nextProps: Props) {
   Object.keys(prevProps)
-    .filter(isPropaty)
+    .filter(isProperty)
     .filter(isGone(prevProps, nextProps))
     .forEach(name => {
-      dom[name] = ""
+      (dom as any)[name] = ""
     });
 
   Object.keys(nextProps)
-    .filter(isPropaty)
+    .filter(isProperty)
     .filter(isNew(prevProps, nextProps))
     .forEach(name => {
-      dom[name] = nextProps[name]
+      (dom as any)[name] = (nextProps as any)[name]
     })
 
+  Object.keys(prevProps)
+    .filter(isEvent)
+    .filter(
+      key => !(key in nextProps) || isNew(prevProps, nextProps)
+    )
+    .forEach(name => {
+      const eventType = name
+        .toLocaleLowerCase()
+        .substring(2);
+      dom.removeEventListener(
+        eventType,
+        (prevProps as any)[name]
+      )
+    });
+
+  Object.keys(nextProps)
+    .filter(isEvent)
+    .filter(isNew(prevProps, nextProps))
+    .forEach(name => {
+      const eventType = name
+        .toLowerCase()
+        .substring(2)
+      dom.addEventListener(
+        eventType,
+        (nextProps as any)[name]
+      )
+    })
 }
 
 function workLoop(time: any) {
@@ -115,6 +145,13 @@ function workLoop(time: any) {
 }
 
 function preformUnitOfWork(fiber: Fiber): Fiber | null {
+  const isFunctionCommponent = fiber.type instanceof Function
+  if (isFunctionCommponent) {
+    updateFunctionComponent(fiber)
+  } else {
+    updateHostComponent(fiber)
+  }
+
   if (!fiber.dom) {
     fiber.dom = createDom(fiber);
   }
@@ -133,6 +170,18 @@ function preformUnitOfWork(fiber: Fiber): Fiber | null {
     nextFiber = nextFiber.parent;
   }
   return null;
+}
+
+function updateFunctionComponent(fiber: Fiber) {
+  const children = [fiber.type(fiber.props)];
+  reconcileChildren(fiber, children);
+}
+
+function updateHostComponent(fiber: Fiber) {
+  if (!fiber.dom) {
+    fiber.dom = createDom(fiber);
+  }
+  reconcileChildren(fiber, fiber.props.children);
 }
 
 function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
@@ -182,6 +231,15 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
     if (oldFiber) {
       oldFiber = oldFiber.sibling;
     }
+
+    prevSibling = newFiber;
+    if (index === 0) {
+      wipFiber.child = newFiber
+    } else if (element) {
+      if (prevSibling)  prevSibling.sibling = newFiber
+      else console.error("prevSibling not found");
+    }
+    index++
   }
 }
 
