@@ -47,15 +47,10 @@ function createDom(fiber: Fiber): Text | HTMLElement {
   const dom = fiber.type == "TEXT_ELEMENT"
     ? document.createTextNode("")
     : document.createElement(fiber.type.toString());
-  fiber.props.children.forEach((chiled: Fiber) => {
-    render(chiled, dom);
-  });
-
-  const isPropaty = (key: string) => key !== "children";
-  Object.keys(fiber.props).filter(isPropaty).forEach(name => {
-    (dom as any)[name] = (fiber.props as any)[name];
-  });
-
+  updateDom(dom, {
+    nodeValue: "",
+    children: [],
+  }, fiber.props);
   return dom;
 }
 
@@ -102,7 +97,7 @@ function updateDom(dom: Text | HTMLElement, prevProps: Props, nextProps: Props) 
   Object.keys(prevProps)
     .filter(isEvent)
     .filter(
-      key => !(key in nextProps) || isNew(prevProps, nextProps)
+      key => !(key in nextProps) || isNew(prevProps, nextProps)(key)
     )
     .forEach(name => {
       const eventType = name
@@ -236,7 +231,7 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
     if (index === 0) {
       wipFiber.child = newFiber
     } else if (element) {
-      if (prevSibling)  prevSibling.sibling = newFiber
+      if (prevSibling) prevSibling.sibling = newFiber
       else console.error("prevSibling not found");
     }
     index++
