@@ -8,9 +8,11 @@ type Fiber = {
     nodeValue: string,
     children: Array<Fiber>,
   }
+  nextUnitOfWork: Fiber | null,
 }
 
 let nextUnitOfWork: Fiber | null = null;
+let wipRoot: any = null;
 requestAnimationFrame(workLoop);
 
 function render(elements: Fiber, container: Text | HTMLElement) {
@@ -23,7 +25,8 @@ function render(elements: Fiber, container: Text | HTMLElement) {
     props: {
       nodeValue: "",
       children: [elements],
-    }
+    },
+    nextUnitOfWork: wipRoot,
   }
 }
 
@@ -43,6 +46,21 @@ function createDom(fiber: Fiber): Text | HTMLElement {
   return dom;
 }
 
+function commitRoot() {
+  commitWork(wipRoot.child)
+  wipRoot = null;
+}
+
+function commitWork(fiber: Fiber) {
+  if (!fiber) {
+    return;
+  }
+
+  const domPearent = fiber.pearent?.dom;
+  if (fiber.dom)
+  domPearent?.appendChild(fiber.dom);
+}
+
 function workLoop(time: any) {
   let shouldYield = false;
   while (nextUnitOfWork && !shouldYield) {
@@ -51,16 +69,17 @@ function workLoop(time: any) {
     var currentTime = new Date().getTime();
     shouldYield = (time - currentTime) < 1;
   }
+
+  if (!nextUnitOfWork && wipRoot) {
+    commitRoot();
+  }
+
   requestAnimationFrame(workLoop);
 }
 
 function preformUnitOfWork(fiber: Fiber): Fiber | null {
   if (!fiber.dom) {
     fiber.dom = createDom(fiber);
-  }
-
-  if (fiber.pearent != null) {
-    fiber.pearent.dom?.appendChild(fiber.dom);
   }
 
   const elements = fiber.props.children;
@@ -75,6 +94,7 @@ function preformUnitOfWork(fiber: Fiber): Fiber | null {
       child: null,
       dom: null,
       sibling: null,
+      nextUnitOfWork:null,
     }
 
     prevSibling = newFiber;

@@ -11,6 +11,7 @@ function createElement(type: string, props: any, ...children: any): Fiber {
       ...props,
       children: children.map((child: Fiber) => typeof child == "object" ? child : createTextElement(child)),
     },
+    nextUnitOfWork:null,
   }
 }
 
@@ -24,7 +25,8 @@ function createTextElement(text: string): Fiber {
     props: {
       nodeValue: text,
       children: [],
-    }
+    },
+    nextUnitOfWork:null,
   }
 }
 
