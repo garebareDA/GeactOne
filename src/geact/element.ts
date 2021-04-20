@@ -3,7 +3,7 @@ import { Fiber } from './render';
 function createElement(type: string, props: any, ...children: any): Fiber {
   return {
     dom: null,
-    pearent: null,
+    parent: null,
     child: null,
     sibling: null,
     type,
@@ -11,14 +11,15 @@ function createElement(type: string, props: any, ...children: any): Fiber {
       ...props,
       children: children.map((child: Fiber) => typeof child == "object" ? child : createTextElement(child)),
     },
-    nextUnitOfWork:null,
+    alternate:null,
+    effectTag:"",
   }
 }
 
 function createTextElement(text: string): Fiber {
   return {
     dom: null,
-    pearent: null,
+    parent: null,
     child: null,
     sibling: null,
     type: "TEXT_ELEMENT",
@@ -26,7 +27,8 @@ function createTextElement(text: string): Fiber {
       nodeValue: text,
       children: [],
     },
-    nextUnitOfWork:null,
+    alternate:null,
+    effectTag:"",
   }
 }
 
