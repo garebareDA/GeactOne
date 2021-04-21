@@ -7,7 +7,7 @@ type Fiber = {
   props: Props,
   alternate: Fiber | null,
   effectTag: string,
-  hooks:Array<any>,
+  hooks: Array<any>,
 }
 
 type Props = {
@@ -26,7 +26,10 @@ let hookIndex: number = 0;
 const isProperty = (key: string) => key !== "children" && !isEvent(key)
 const isEvent = (key: string) => key.startsWith("on")
 const isNew = (prev: any, next: any) => (key: any) => prev[key] as any !== next[key];
-const isGone = (prev: Props, next: Props) => (key: string) => !(key in next);
+const isGone = (prev: Props, next: Props) => (key: string) => {
+  if (!next) return true;
+  !(key in next)
+};
 
 requestAnimationFrame(workLoop);
 
@@ -43,7 +46,7 @@ function render(elements: Fiber, container: Text | HTMLElement) {
     },
     alternate: currentRoot,
     effectTag: "",
-    hooks:[],
+    hooks: [],
   }
   nextUnitOfWork = wipRoot;
 }
@@ -51,7 +54,7 @@ function render(elements: Fiber, container: Text | HTMLElement) {
 function createDom(fiber: Fiber): Text | HTMLElement {
   const dom = fiber.type == "TEXT_ELEMENT"
     ? document.createTextNode("")
-    : document.createElement(fiber.type.toString());
+    : document.createElement(fiber.type);
   updateDom(dom, {
     nodeValue: "",
     children: [],
@@ -131,9 +134,8 @@ function updateDom(dom: Text | HTMLElement, prevProps: Props, nextProps: Props) 
 function workLoop(time: any) {
   let shouldYield = false;
   while (nextUnitOfWork && !shouldYield) {
-    nextUnitOfWork = preformUnitOfWork(nextUnitOfWork);
-
-    var currentTime = new Date().getTime();
+    nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
+    const currentTime = new Date().getTime();
     shouldYield = (time - currentTime) < 1;
   }
 
@@ -144,19 +146,13 @@ function workLoop(time: any) {
   requestAnimationFrame(workLoop);
 }
 
-function preformUnitOfWork(fiber: Fiber): Fiber | null {
+function performUnitOfWork(fiber: Fiber): Fiber | null {
   const isFunctionCommponent = fiber.type instanceof Function
   if (isFunctionCommponent) {
     updateFunctionComponent(fiber)
   } else {
     updateHostComponent(fiber)
   }
-
-  if (!fiber.dom) {
-    fiber.dom = createDom(fiber);
-  }
-  const elements = fiber.props.children;
-  reconcileChildren(fiber, elements);
 
   if (fiber.child) {
     return fiber.child;
@@ -210,7 +206,7 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
           effectTag: "UPDATE",
           child: null,
           sibling: null,
-          hooks:[],
+          hooks: [],
         }
     }
 
@@ -224,7 +220,7 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
         effectTag: "PLACEMENT",
         child: null,
         sibling: null,
-        hooks:[],
+        hooks: [],
       }
     }
 
@@ -248,32 +244,36 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
   }
 }
 
-function useState(inital: any):Array<any> {
-  const oldHook = wipFiber?.alternate && wipFiber.alternate.hooks && wipFiber.alternate.hooks[hookIndex];
+function useState(inital: any): Array<any> {
+  //useState もう一回見直す
+  const oldHook =
+  wipFiber?.alternate
+  && wipFiber.alternate.hooks
+  && wipFiber.alternate.hooks[hookIndex];
   const hook = {
-    state:oldHook ? oldHook.state : inital,
-    queue:[],
+    state: oldHook ? oldHook.state : inital,
+    queue: [],
   }
 
   const actions = oldHook ? oldHook.queue : []
-  actions.forEach((action:any) => {
+  actions.forEach((action: any) => {
     hook.state = action(hook.state)
   })
 
-  const setState = (action:any) => {
+  const setState = (action: any) => {
     hook.queue.filter(action);
     if (currentRoot)
-    wipRoot = {
-      dom:currentRoot.dom,
-      type:"",
-      props:currentRoot.props,
-      alternate:currentRoot,
-      parent: null,
-      effectTag: "",
-      child: null,
-      sibling: null,
-      hooks:[],
-    }
+      wipRoot = {
+        dom: currentRoot.dom,
+        type: "",
+        props: currentRoot.props,
+        alternate: currentRoot,
+        parent: null,
+        effectTag: "",
+        child: null,
+        sibling: null,
+        hooks: [],
+      }
     else console.error("not found current root");
 
     nextUnitOfWork = wipRoot;
