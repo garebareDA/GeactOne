@@ -7,6 +7,7 @@ type Fiber = {
   props: Props,
   alternate: Fiber | null,
   effectTag: string,
+  hooks:Array<any>,
 }
 
 type Props = {
@@ -18,6 +19,9 @@ let nextUnitOfWork: Fiber | null = null;
 let wipRoot: Fiber | null = null;
 let currentRoot: Fiber | null = null;
 let deletions: Fiber[];
+
+let wipFiber: Fiber | null = null;
+let hookIndex: number = 0;
 
 const isProperty = (key: string) => key !== "children" && !isEvent(key)
 const isEvent = (key: string) => key.startsWith("on")
@@ -39,6 +43,7 @@ function render(elements: Fiber, container: Text | HTMLElement) {
     },
     alternate: currentRoot,
     effectTag: "",
+    hooks:[],
   }
   nextUnitOfWork = wipRoot;
 }
@@ -168,6 +173,9 @@ function preformUnitOfWork(fiber: Fiber): Fiber | null {
 }
 
 function updateFunctionComponent(fiber: Fiber) {
+  wipFiber = fiber;
+  hookIndex = 0;
+  wipFiber.hooks = [];
   const children = [fiber.type(fiber.props)];
   reconcileChildren(fiber, children);
 }
@@ -202,6 +210,7 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
           effectTag: "UPDATE",
           child: null,
           sibling: null,
+          hooks:[],
         }
     }
 
@@ -215,6 +224,7 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
         effectTag: "PLACEMENT",
         child: null,
         sibling: null,
+        hooks:[],
       }
     }
 
@@ -238,8 +248,46 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
   }
 }
 
+function useState(inital: any):Array<any> {
+  const oldHook = wipFiber?.alternate && wipFiber.alternate.hooks && wipFiber.alternate.hooks[hookIndex];
+  const hook = {
+    state:oldHook ? oldHook.state : inital,
+    queue:[],
+  }
+
+  const actions = oldHook ? oldHook.queue : []
+  actions.forEach((action:any) => {
+    hook.state = action(hook.state)
+  })
+
+  const setState = (action:any) => {
+    hook.queue.filter(action);
+    if (currentRoot)
+    wipRoot = {
+      dom:currentRoot.dom,
+      type:"",
+      props:currentRoot.props,
+      alternate:currentRoot,
+      parent: null,
+      effectTag: "",
+      child: null,
+      sibling: null,
+      hooks:[],
+    }
+    else console.error("not found current root");
+
+    nextUnitOfWork = wipRoot;
+    deletions = [];
+  }
+
+  wipFiber?.hooks.push(hook);
+  hookIndex++;
+  return [hook.state, setState];
+}
+
 export {
-  render
+  render,
+  useState,
 }
 
 export type {

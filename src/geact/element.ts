@@ -13,6 +13,7 @@ function createElement(type: string, props: any, ...children: any): Fiber {
     },
     alternate:null,
     effectTag:"",
+    hooks:[]
   }
 }
 
@@ -29,6 +30,7 @@ function createTextElement(text: string): Fiber {
     },
     alternate:null,
     effectTag:"",
+    hooks:[],
   }
 }
 

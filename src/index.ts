@@ -1,11 +1,7 @@
 import Geact from './geact/geact';
+import Counter from './tsx/test';
 
-const elements = Geact.createElement(
-  "div",
-  { id: "foo" },
-  Geact.createElement("a", null, "bar"),
-  Geact.createElement("b", null),
-)
+const elements = Counter();
 
 const container = document.getElementById("root");
 if (container != null) {

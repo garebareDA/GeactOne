@@ -1,9 +1,10 @@
 import { createElement } from './element';
-import { render } from './render'
+import { render, useState } from './render'
 
 const Geact = {
   createElement,
-  render
+  render,
+  useState,
 }
 
 export default Geact;
