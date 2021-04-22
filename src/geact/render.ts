@@ -51,17 +51,6 @@ function render(elements: Fiber, container: Text | HTMLElement) {
   nextUnitOfWork = wipRoot;
 }
 
-function createDom(fiber: Fiber): Text | HTMLElement {
-  const dom = fiber.type == "TEXT_ELEMENT"
-    ? document.createTextNode("")
-    : document.createElement(fiber.type);
-  updateDom(dom, {
-    nodeValue: "",
-    children: [],
-  }, fiber.props);
-  return dom;
-}
-
 function commitRoot() {
   deletions.forEach(commitWork);
   if (wipRoot) commitWork(wipRoot.child);
@@ -88,6 +77,15 @@ function commitWork(fiber: Fiber | null) {
 
   commitWork(fiber.child);
   commitWork(fiber.sibling);
+}
+
+function commitDeletion(fiber: Fiber, domParent: Text | HTMLElement) {
+  if (fiber.dom) {
+    domParent.removeChild(fiber.dom)
+  } else {
+    if (fiber.child)
+      commitDeletion(fiber.child, domParent)
+  }
 }
 
 function updateDom(dom: Text | HTMLElement, prevProps: Props, nextProps: Props) {
@@ -136,13 +134,15 @@ function updateDom(dom: Text | HTMLElement, prevProps: Props, nextProps: Props) 
     })
 }
 
-function commitDeletion(fiber: Fiber, domParent: Text | HTMLElement) {
-  if (fiber.dom) {
-    domParent.removeChild(fiber.dom)
-  } else {
-    if (fiber.child)
-      commitDeletion(fiber.child, domParent)
-  }
+function createDom(fiber: Fiber): Text | HTMLElement {
+  const dom = fiber.type == "TEXT_ELEMENT"
+    ? document.createTextNode("")
+    : document.createElement(fiber.type);
+  updateDom(dom, {
+    nodeValue: "",
+    children: [],
+  }, fiber.props);
+  return dom;
 }
 
 function workLoop(time: any) {
