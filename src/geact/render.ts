@@ -27,7 +27,6 @@ const isProperty = (key: string) => key !== "children" && !isEvent(key)
 const isEvent = (key: string) => key.startsWith("on")
 const isNew = (prev: any, next: any) => (key: any) => prev[key] as any !== next[key];
 const isGone = (prev: Props, next: Props) => (key: string) => {
-  if (!next) return true;
   !(key in next)
 };
 
@@ -35,7 +34,7 @@ requestAnimationFrame(workLoop);
 
 function render(elements: Fiber, container: Text | HTMLElement) {
   wipRoot = {
-    type: "root",
+    type: "",
     dom: container,
     parent: null,
     child: null,
@@ -48,6 +47,7 @@ function render(elements: Fiber, container: Text | HTMLElement) {
     effectTag: "",
     hooks: [],
   }
+  deletions = [];
   nextUnitOfWork = wipRoot;
 }
 
@@ -63,7 +63,9 @@ function createDom(fiber: Fiber): Text | HTMLElement {
 }
 
 function commitRoot() {
+  deletions.forEach(commitWork);
   if (wipRoot) commitWork(wipRoot.child);
+  else console.error("not found wipRoot");
   currentRoot = wipRoot
   wipRoot = null;
 }
@@ -80,7 +82,7 @@ function commitWork(fiber: Fiber | null) {
     if (fiber.alternate) updateDom(fiber.dom, fiber.alternate.props, fiber.props);
     else console.error("notfound fiber alnate");
   } else if (fiber.effectTag === "DELETION") {
-    if (fiber.dom) domParent?.removeChild(fiber.dom);
+    if (fiber.dom) commitDeletion(fiber, domParent);
     else console.error("not found parent");
   }
   commitWork(fiber.child);
@@ -131,6 +133,15 @@ function updateDom(dom: Text | HTMLElement, prevProps: Props, nextProps: Props) 
     })
 }
 
+function commitDeletion(fiber:Fiber, domParent: Text | HTMLElement) {
+  if (fiber.dom) {
+    domParent.removeChild(fiber.dom)
+  } else {
+    if(fiber.child)
+    commitDeletion(fiber.child, domParent)
+  }
+}
+
 function workLoop(time: any) {
   let shouldYield = false;
   while (nextUnitOfWork && !shouldYield) {
@@ -140,6 +151,7 @@ function workLoop(time: any) {
   }
 
   if (!nextUnitOfWork && wipRoot) {
+    console.log(wipRoot);
     commitRoot();
   }
 
@@ -191,6 +203,8 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
   while (index < elements.length || oldFiber != null) {
     const element = elements[index];
     let newFiber: Fiber | null = null;
+    console.log(element);
+    //nodeValueの中身は入っているが生成されていない
 
     const sameType = oldFiber && element && element.type == oldFiber.type;
 
@@ -245,7 +259,6 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
 }
 
 function useState(inital: any): Array<any> {
-  //useState もう一回見直す
   const oldHook =
   wipFiber?.alternate
   && wipFiber.alternate.hooks
@@ -256,12 +269,12 @@ function useState(inital: any): Array<any> {
   }
 
   const actions = oldHook ? oldHook.queue : []
-  actions.forEach((action: any) => {
+  actions.forEach((action: (state:any) => {}) => {
     hook.state = action(hook.state)
   })
 
-  const setState = (action: any) => {
-    hook.queue.filter(action);
+  const setState = (action: never) => {
+    hook.queue.push(action);
     if (currentRoot)
       wipRoot = {
         dom: currentRoot.dom,
