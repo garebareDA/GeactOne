@@ -205,7 +205,6 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
   while (index < elements.length || oldFiber != null) {
     const element = elements[index];
     let newFiber: Fiber | null = null;
-    //nodeValueの中身は入っているが生成されていない
 
     const sameType = oldFiber && element && element.type == oldFiber.type;
 
