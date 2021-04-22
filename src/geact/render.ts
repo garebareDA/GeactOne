@@ -85,17 +85,35 @@ function commitWork(fiber: Fiber | null) {
     if (fiber.dom) commitDeletion(fiber, domParent);
     else console.error("not found parent");
   }
+
   commitWork(fiber.child);
   commitWork(fiber.sibling);
 }
 
 function updateDom(dom: Text | HTMLElement, prevProps: Props, nextProps: Props) {
   Object.keys(prevProps)
+    .filter(isEvent)
+    .filter(
+      key =>
+        !(key in nextProps) ||
+        isNew(prevProps, nextProps)(key)
+    )
+    .forEach(name => {
+      const eventType = name
+        .toLowerCase()
+        .substring(2)
+      dom.removeEventListener(
+        eventType,
+        (prevProps as any)[name]
+      )
+    })
+
+  Object.keys(prevProps)
     .filter(isProperty)
     .filter(isGone(prevProps, nextProps))
     .forEach(name => {
       (dom as any)[name] = ""
-    });
+    })
 
   Object.keys(nextProps)
     .filter(isProperty)
@@ -103,21 +121,6 @@ function updateDom(dom: Text | HTMLElement, prevProps: Props, nextProps: Props) 
     .forEach(name => {
       (dom as any)[name] = (nextProps as any)[name]
     })
-
-  Object.keys(prevProps)
-    .filter(isEvent)
-    .filter(
-      key => !(key in nextProps) || isNew(prevProps, nextProps)(key)
-    )
-    .forEach(name => {
-      const eventType = name
-        .toLocaleLowerCase()
-        .substring(2);
-      dom.removeEventListener(
-        eventType,
-        (prevProps as any)[name]
-      )
-    });
 
   Object.keys(nextProps)
     .filter(isEvent)
@@ -133,12 +136,12 @@ function updateDom(dom: Text | HTMLElement, prevProps: Props, nextProps: Props) 
     })
 }
 
-function commitDeletion(fiber:Fiber, domParent: Text | HTMLElement) {
+function commitDeletion(fiber: Fiber, domParent: Text | HTMLElement) {
   if (fiber.dom) {
     domParent.removeChild(fiber.dom)
   } else {
-    if(fiber.child)
-    commitDeletion(fiber.child, domParent)
+    if (fiber.child)
+      commitDeletion(fiber.child, domParent)
   }
 }
 
@@ -151,7 +154,6 @@ function workLoop(time: any) {
   }
 
   if (!nextUnitOfWork && wipRoot) {
-    console.log(wipRoot);
     commitRoot();
   }
 
@@ -203,7 +205,6 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
   while (index < elements.length || oldFiber != null) {
     const element = elements[index];
     let newFiber: Fiber | null = null;
-    console.log(element);
     //nodeValueの中身は入っているが生成されていない
 
     const sameType = oldFiber && element && element.type == oldFiber.type;
@@ -247,29 +248,29 @@ function reconcileChildren(wipFiber: Fiber, elements: Fiber[]) {
       oldFiber = oldFiber.sibling;
     }
 
-    prevSibling = newFiber;
     if (index === 0) {
       wipFiber.child = newFiber
     } else if (element) {
       if (prevSibling) prevSibling.sibling = newFiber
       else console.error("prevSibling not found");
     }
+    prevSibling = newFiber;
     index++
   }
 }
 
 function useState(inital: any): Array<any> {
   const oldHook =
-  wipFiber?.alternate
-  && wipFiber.alternate.hooks
-  && wipFiber.alternate.hooks[hookIndex];
+    wipFiber?.alternate
+    && wipFiber.alternate.hooks
+    && wipFiber.alternate.hooks[hookIndex];
   const hook = {
     state: oldHook ? oldHook.state : inital,
     queue: [],
   }
 
   const actions = oldHook ? oldHook.queue : []
-  actions.forEach((action: (state:any) => {}) => {
+  actions.forEach((action: (state: any) => {}) => {
     hook.state = action(hook.state)
   })
 
